@@ -1,0 +1,98 @@
+\documentclass[12pt]{article}
+\makeatletter
+\def\input@path{{../paper/}}
+\makeatother
+\usepackage[commenters={OA,AA,DJM}]{shortex} % adjust initials for comments
+\usepackage{authblk}
+\usepackage[round]{natbib}
+\usepackage[margin=2.5cm]{geometry}
+\newcommand{\email}[1]{\href{mailto:#1}{#1}}
+
+% minor adjustments to ShorTeX
+\let\argmin\relax\DeclareMathOperator*{\argmin}{argmin}
+\let\argmax\relax\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\minimize}{minimize}
+\DeclareMathOperator*{\maximize}{maximize}
+\DeclareMathOperator{\subjto}{\ \text{subject to}\ }
+\renewcommand{\top}{\mathsf{T}}
+\renewcommand{\d}{\mathsf{d}}
+
+\graphicspath{{fig/}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{11pt}
+\usepackage{enumitem}
+
+% -- Begin document --------------------------------------------------------
+
+\title{One-pager on $R_t$ estimation with geographical dropout}
+\author{KP, DJM}
+\date{Last revised: \today}
+
+\begin{document}
+\maketitle
+%\RaggedRight % uncomment to enable ragged right
+
+
+\section{As presented at the conference}\label{sec:proof}
+
+\bitem[nosep]
+\item Let $y_{\ell,t}$ be incidence in location $\ell$ at time $t$
+\item Let $y_t$ be observed incidence over the region with $y_t = \sum_{\ell}
+y_{\ell, t}$ 
+\item We have regional estimates of $R_t$ from time $t=1,\ldots,T + H$.
+\item There is a subregion $\ell$ with data available only up until time $t$.
+\item Define $\Lambda_t = \sum_{i=1}^{t} \omega_{i}y_{t-i}$ to be the convolved
+incidence in the region and $\Lambda_{\ell,t}$ be the same for location $\ell$
+\eitem
+
+The ``deterministic dropout correction'' is:
+
+Input $\{R_t\}_{t=1}^{T+H}$, $\{R_{\ell, t}\}_{t=1}^{T}$, $\Lambda_{\ell,t}$.\\
+For $h = 1,\ldots,H$, do
+\benum[nosep]
+\item Predict $\hat{y}_{\ell,T + h} = R_{T+h}\Lambda_{\ell,T+h-1}$ (set to it's
+expected value)
+\item Convolve $\Lambda_{\ell,T+h} = \sum_{i=1}^{T+h} \omega_{i}\tilde{y}_{T + h
+- i}$, where $\tilde{y}_j = y_j \1[j\leq T] + \hat{y}_j \1[j>T]$.
+\item Estimate local $\hat{R}_{\ell,T+h} = R_{T+h} \frac{\Lambda_{\ell, T+h-1}}
+{\Lambda_{\ell, T+h}}$.
+\eenum
+
+\section{As actually implemented}
+
+Once we started implementing, a few minor changes were necessary.
+
+\bitem[nosep]
+\item We don't actually use $\hat{R}_{\ell,T+h}$ for anything. So, we don't
+calculate it. 
+\item Because location $\ell$ is unavailable for $t=T+1,\ldots,T+H$, we also
+don't have $\Lambda_t$ for $t=T+1,\ldots,T+H$. For $h \geq 1$ we used the
+correction $1 - \Lambda_{\ell,t}/\Lambda_{t}$, to rescale regional incidence
+(and convolved incidence).
+\item Once we have the sequence $\{\hat{y}_{\ell,t}\}$ for $t=1,\ldots,T+H$, we
+just throw that into the local $R_t$ estimation routine.
+\eitem
+
+\section{Suggested implementation}
+
+We are predicting $\hat{y}_{\ell,T + h}$ using $R_{T+h}$ and
+$\Lambda_{\ell,T+h-1}$, both of which are smooth. Then we reconvolve and
+iterate. It may be more productive to view this as a process with 2 modules, a
+\texttt{forecaster} and an \texttt{Rtestimator}. Then the meta procedure is
+
+\benum[nosep]
+\item Use \texttt{forecaster} to produce $\{\Lambda_{\ell, T+h}\}$ for $1\leq h
+\leq H$. We do this conditional on all available information (incidence at the
+current location, the region, or whatever we want in between). We can even use
+auxiliary signals (wastewater or similar). Our current version is just a very
+simple \texttt{forecaster} (uses global $R_t$ and local convolved incidence).
+\item Calculate $\hat{y}$ by taking the first differences of $\{\Lambda_{\ell, T+h}\}$.
+\item Use \texttt{Rtestimator} to produce $\{R_{\ell, t}\}_{t=1}^{T+H}$
+\eenum
+
+
+
+\end{document}
+
+\bibliographystyle{../paper/rss}
+\bibliography{../paper/dajmcdon}      
