@@ -1,0 +1,159 @@
+\documentclass[12pt]{article}
+\usepackage[commenters={OA,AA,DJM}]{shortex} % adjust initials for comments
+\usepackage{authblk}
+\usepackage[round]{natbib}
+\usepackage[margin=2.5cm]{geometry}
+\newcommand{\email}[1]{\href{mailto:#1}{#1}}
+
+% minor adjustments to ShorTeX
+\let\argmin\relax\DeclareMathOperator*{\argmin}{argmin}
+\let\argmax\relax\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\minimize}{minimize}
+\DeclareMathOperator*{\maximize}{maximize}
+\DeclareMathOperator{\subjto}{\ \text{subject to}\ }
+\renewcommand{\top}{\mathsf{T}}
+\renewcommand{\d}{\mathsf{d}}
+
+\graphicspath{{fig/}}
+
+% -- Begin document --------------------------------------------------------
+
+\title{Creative title: Where we give results about things}
+\author[a,1]{Other Author}
+\author[b]{Another Author}
+\author[a]{Daniel J.\ McDonald}
+
+\affil[a]{Department of Statistics, The University of British Columbia}
+\affil[b]{Department of Music, Indiana University}
+\date{Last updated: \today}
+
+\begin{document}
+\maketitle
+%\RaggedRight % uncomment to enable ragged right
+
+\babs
+Write an abstract.
+
+\vspace{10pt}
+\noindent Keywords: fractals $|$ quavers $|$ carbonara
+\eabs
+
+\footnotetext[1]{To whom correspondence should be
+  addressed. E-mail: \email{some.email@stat.ubc.ca}} 
+
+
+\section{Introduction}\label{sec:intro}
+
+We write some math for fun:
+
+\[
+\label{eq:1}
+\int_{-\infty}^{\infty} \frac{1}{\sqrt{2\pi}|\Sigma|^{n/2}}
+\exp\cbra*{-\frac{1}{2}(y - \mu)\T \Sigma^{-1} (y-\mu)} \d y = 1.
+\]
+
+We encourage the use of the various macros defined in
+\href{https://github.com/trevorcampbell/shortex/}{ShorTeX},
+so do your best. It makes things easier to read, but also provides lots of
+necessary mathematics definitions that render nicely. 
+
+Be careful with things like KL divergence and conditional probability
+statements. I find that 
+\[\KL(q\ \Vert\ p)\]
+looks much better than 
+\[\KL(q||p),\] 
+and I similarly prefer 
+\[
+Y\ |\ X \sim \Norm(X,\ \sigma^2) 
+\quad\textrm{to}\quad Y | X \sim \Norm(X,\sigma^2).
+\] 
+Note that the reals are $\reals^p$. There is also
+\[
+\shbeta = \argmin_{\beta \in \reals^p} \frac{1}{2n}\norm{\sky - \skX\beta}_2^2 + 
+\lambda \norm{\beta}_1,
+\]
+and (with automatic sizing of the norm),
+\[
+\shbeta = \argmin_{\beta \in \reals^p} \frac{1}{2n}\norm*{\frac{y}{1} - X\beta}_2^2 + 
+\lambda \norm*{\beta}_1.
+\]
+
+Note that the indicator function looks like $\1\{\cdot\}$, but I sometimes
+prefer $\mathbf{1}\{\cdot\}$.
+
+
+
+
+\subsection{Cleveref}\label{sec:clever}
+
+We prefer to use cleveref to get nice references to things. For example, you can
+say that \cref{eq:1} was printed in \cref{sec:intro}. No need to write out
+things like ``Section''.
+
+\section{Some best practices}
+
+Some of these are taken from
+\href{http://faculty.marshall.usc.edu/Jacob-Bien/papers/manuscript-checklist.pdf}{Jacob
+Bien}. Note the use of the ShorTeX itemize environment style below.
+
+\bitem
+\item Section titles should be all title case or all sentence case. Don't mix and match.
+\item I prefer data set to dataset.
+\item I prefer data to be singular. There remains debate on this point. When you
+use the word ``datum'' in a sentence, then we can argue. Data is a mass noun,
+like ``information''. We don't say ``How many data are enough?'', we say ``How much
+data is enough.'' Enough said.  
+\item Terminology is lower case, unless it's a person's name: \Nystrom extension
+and lasso.
+\item Equations are parts of the sentence. Displayed equations almost always
+have a comma or period after. Very rarely is there a colon or comma \emph{before}
+a displayed equation.
+\item Don't start sentences with math (``$\Sigma$ is the covariance of
+$\skX$.'') or the name of a software package that's lowercase, \eg
+``\texttt{glmnet} is my favourite software''.
+\item Don't use contractions.
+\item No need to put dollar signs around numbers: 12 versus $12$.
+\item DO put dollar signs around math: $p$ not p.
+\item Use $x\gg y$ not $x >>y$.
+\item Careful with parentheticals and references. Wrong: (see, \eg
+\citet{Akaike1973}). Right: (see, \eg \citealp{Akaike1973}).
+\item Never use \texttt{eqnarray}, always use \texttt{align}. Note that ShorTeX
+makes \verb+\[   \]+ into an align environment, so you can just use that always.
+\item For editing purposes, it is much better if the text is hard-wrapped rather
+than soft wrapped.
+\eitem
+
+\subsection{Tables}
+
+\Cref{tab:1} is a nice looking table. Strive for these.
+
+\btab
+\bcent
+\btabr{@{}lr@{}}
+\toprule
+Ingredient & Quantity\\
+\midrule
+Fusili & 100 g\\
+Eggs & 2\\
+Salt & 1 tsp\\
+Guanciale & 50 g\\
+Pepper & \nicefrac{1}{2} tsp\\
+Grated parmesan & \nicefrac{1}{4} c\\
+\bottomrule
+\etabr
+\caption{This is a nice looking table. It might make carbonara.}
+\label{tab:1}
+\ecent
+\etab
+
+\section{Discussion} 
+
+We made amazing contributions to the world of musical fractal pasta 
+\citep{McDonald2017,Tibshirani2013}. We use Natbib, so be sure to use
+\citep{Stein1981} for parenthetical references. Or you can say, according to
+\citet{HastieTibshirani2009}, we should strive to balance truth and lies.
+
+\bibliographystyle{rss}
+\bibliography{dajmcdon}      
+
+\end{document}

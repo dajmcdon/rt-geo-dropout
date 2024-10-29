@@ -1,0 +1,6 @@
+preserve.key.case = on
+fmt.et.al = {}
+key.number.separator = {}
+key.base = lower
+fmt.name.name = {}
+key.format = {{ %2n(author) # %2n(editor)}{ %4d(year) #}}

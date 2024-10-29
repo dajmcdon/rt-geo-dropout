@@ -1,0 +1,44 @@
+\documentclass[12pt]{article}
+\makeatletter
+\def\input@path{{../paper/}}
+\makeatother
+\usepackage[commenters={OA,AA,DJM}]{shortex} % adjust initials for comments
+\usepackage{authblk}
+\usepackage[round]{natbib}
+\usepackage[margin=2.5cm]{geometry}
+\newcommand{\email}[1]{\href{mailto:#1}{#1}}
+
+% minor adjustments to ShorTeX
+\let\argmin\relax\DeclareMathOperator*{\argmin}{argmin}
+\let\argmax\relax\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\minimize}{minimize}
+\DeclareMathOperator*{\maximize}{maximize}
+\DeclareMathOperator{\subjto}{\ \text{subject to}\ }
+\renewcommand{\top}{\mathsf{T}}
+\renewcommand{\d}{\mathsf{d}}
+
+\graphicspath{{fig/}}
+
+% -- Begin document --------------------------------------------------------
+
+\title{Some notes to share}
+\author{Other Author, DJM}
+\date{\today}
+
+\begin{document}
+\maketitle
+%\RaggedRight % uncomment to enable ragged right
+
+
+\section{On that proof...}\label{sec:proof}
+
+
+We made amazing contributions to the world of musical fractal pasta 
+\citep{McDonald2017,Tibshirani2013}. We use Natbib, so be sure to use
+\citep{Stein1981} for parenthetical references. Or you can say, according to
+\citet{HastieTibshirani2009}, we should strive to balance truth and lies.
+
+\bibliographystyle{../paper/rss}
+\bibliography{../paper/dajmcdon}      
+
+\end{document}

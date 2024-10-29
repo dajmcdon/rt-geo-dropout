@@ -1,0 +1,5 @@
+mkdir arXiv
+cp paper/shortex.sty arXiv/
+cp paper/paper.tex paper/paper.bbl arXiv/
+cp paper/fig/* arXiv/fig/
+zip -r arXiv.zip arXiv
