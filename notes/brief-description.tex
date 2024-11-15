@@ -16,16 +16,19 @@
 \DeclareMathOperator{\subjto}{\ \text{subject to}\ }
 \renewcommand{\top}{\mathsf{T}}
 \renewcommand{\d}{\mathsf{d}}
+\newcommand{\cond}{\; \m| \;}
 
 \graphicspath{{fig/}}
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{11pt}
+%\setlength{\parskip}{11pt}
 \usepackage{enumitem}
+
+
 
 % -- Begin document --------------------------------------------------------
 
-\title{One-pager on $R_t$ estimation with geographical dropout}
-\author{KP, DJM}
+\title{\huge Supplementing local $R_t$ estimation during periods of geographical dropout}
+\author{Kris V Parag, Daniel J McDonald}
 \date{Last revised: \today}
 
 \begin{document}
@@ -33,64 +36,136 @@
 %\RaggedRight % uncomment to enable ragged right
 
 
-\section{As presented at the conference}\label{sec:proof}
+\section*{Bayesian local-global methodology}\label{sec:bayes}
 
-\bitem[nosep]
-\item Let $y_{\ell,t}$ be incidence in location $\ell$ at time $t$
-\item Let $y_t$ be observed incidence over the region with $y_t = \sum_{\ell}
-y_{\ell, t}$ 
-\item We have regional estimates of $R_t$ from time $t=1,\ldots,T + H$.
-\item There is a subregion $\ell$ with data available only up until time $t$.
-\item Define $\Lambda_t = \sum_{i=1}^{t} \omega_{i}y_{t-i}$ to be the convolved
-incidence in the region and $\Lambda_{\ell,t}$ be the same for location $\ell$
+We assume $p\geq 2$ locations (the local level) compose a region (the global level) with random mixing within each location. We do not model interactions among locations.
+
+\bitem
+\item Let $I_{t, \ell}$ be incidence in location $1\leq \ell \leq p$ at time $t$
+(usually in days).
+\item Let $I_t$ be the incidence over the entire region with $I_t = \sum_{\ell}
+y_{t, \ell}$. 
 \eitem
 
-The ``deterministic dropout correction'' is:
+Consequently, we can employ a renewal model to estimate $R_t$ from time $t=1,\ldots, T + H$ as:
+\begin{align}
+& \mathbb{P}\left(R_t \cond I_1^{t}\right) \text{ given } I_t \sim \text{Noise} 
+\left(R_t\Lambda_t\right) \text{ and } \Lambda_t = \sum_{i=1}^{t-1}
+\omega_{i}I_{t-i}\label{eq: 1}
+\end{align}
 
-Input $\{R_t\}_{t=1}^{T+H}$, $\{R_{\ell, t}\}_{t=1}^{T}$, $\Lambda_{\ell,t}$.\\
-For $h = 1,\ldots,H$, do
-\benum[nosep]
-\item Predict $\hat{y}_{\ell,T + h} = R_{T+h}\Lambda_{\ell,T+h-1}$ (set to it's
-expected value)
-\item Convolve $\Lambda_{\ell,T+h} = \sum_{i=1}^{T+h} \omega_{i}\tilde{y}_{T + h
-- i}$, where $\tilde{y}_j = y_j \1[j\leq T] + \hat{y}_j \1[j>T]$.
-\item Estimate local $\hat{R}_{\ell,T+h} = R_{T+h} \frac{\Lambda_{\ell, T+h-1}}
-{\Lambda_{\ell, T+h}}$.
+
+$\Lambda_t$ is the total infectiousness in the region, the weights $\omega_{i}$
+compose the generation time distribution of the disease and
+$\sum_{i=1}^{\infty}\omega_{i} = 1$. `Noise' is some noise distribution of
+choice. 
+
+We consider that there is dropout \ie a loss of data, in location $\ell$ from
+time $t=T$.
+
+\bitem
+\item All locations have the same generation time distribution and $\Lambda_{t,
+\ell} =\sum_{i=1}^{t} \omega_{i}I_{t-i, \ell}$.
+\item The location with dropout has unknown $I_{\ell,t}$ for $T \leq t \leq T+H$.
+\item Local-level renewal models provide the posterior $\mathbb{P}\left(R_{t,
+\ell}  \cond I_{1, \ell}^{t}\right)$ only up to $t = T$.
+\eitem
+
+There are two options for providing estimates during the dropout time period.
+For any time in this period $1 \leq h \leq H$ we can either:
+\benum
+\item Baseline: project from our last local posterior $\mathbb{P}\left(R_{T, \ell}  \cond I_{1, \ell}^{T}\right)$ to time $T+h$.
+\item Correction: borrow information from the global posteriors $\mathbb{P}\left(R_{T+h}  \cond I_{1}^{T+h}\right)$.
 \eenum
 
-\section{As actually implemented}
+Our proposed correction uses the last local posterior as a prior and then draws
+information from the global posteriors (which exclude $\ell$) to update this
+into the posterior:
+\begin{align}
+& \mathbb{P}\left(R_{T+1, \ell} \cond I_{1, \ell}^T, \, \sum_{m \neq \ell} I_{T+1, m} \right) \propto \mathbb{P}\left(R_{T+1, \ell}  \cond \sum_{m \neq \ell} I_{T+1, m}\right)\mathbb{P}\left(R_{T+1, \ell}  \cond I_{1, \ell}^{T}\right)\label{eq: 2}
+\end{align}
 
-Once we started implementing, a few minor changes were necessary.
 
-\bitem[nosep]
-\item We don't actually use $\hat{R}_{\ell,T+h}$ for anything. So, we don't
-calculate it. 
+This follows due to the conditional independence of the infections in locations.
+Later time steps are obtained by iterating this process sequentially (with the
+prior reset to the dropout posterior from the last time step). We have not yet
+implemented this full version and so test a `deterministic dropout correction'
+via the following sequence:
+
+Input $\{R_t\}_{t=1}^{T+H}$, $\{R_{t, \ell}\}_{t=1}^{T}$, $\Lambda_{\ell,t}$.
+For $h = 1,\ldots,H$, do
+
+\benum
+\item Predict $\hat{I}_{T + h, \ell} = R_{T+h}\Lambda_{T+h, \ell}$ (expectations from renewal models).
+\item Convolve $\Lambda_{T+h, \ell} = \sum_{i=1}^{T+h-1} \omega_{i}\tilde{I}_{T + h
+- i}$, where $\tilde{I}_j = I_j \1[j\leq T] + \hat{I}_j \1[j>T]$.
+\item Estimate local $\hat{R}_{T+h, \ell} = \epsilon_{h} R_{T+h} \frac{\Lambda_{T+h, \ell}}
+{\Lambda_{T+h+1, \ell}}$, with $\epsilon_h$ as a factor we currently set to 1.
+\eenum
+
+\section*{Current and suggested implementations}\label{sec:implement}
+
+The above deterministic algorithm was modified during actual implementation as
+follows:
+
+\bitem
+\item It is not necessary to sequentially compute $\hat{R}_{T+h, \ell}$ and this
+procedure ignores it. 
 \item Because location $\ell$ is unavailable for $t=T+1,\ldots,T+H$, we also
-don't have $\Lambda_t$ for $t=T+1,\ldots,T+H$. For $h \geq 1$ we used the
-correction $1 - \Lambda_{\ell,t}/\Lambda_{t}$, to rescale regional incidence
+cannot compute $\Lambda_t$ for $t=T+2,\ldots,T+H$. For $h \geq 1$ we used the
+correction $1 - \Lambda_{\ell, t}/\Lambda_{t}$, to rescale regional incidence
 (and convolved incidence).
-\item Once we have the sequence $\{\hat{y}_{\ell,t}\}$ for $t=1,\ldots,T+H$, we
-just throw that into the local $R_t$ estimation routine.
+\item Once we have the sequence $\{\hat{I}_{\ell, t}\}$ for $t=1,\ldots,T+H$, we
+simply input this into the local $R_t$ estimation routine as pseudodata.
 \eitem
 
-\section{Suggested implementation}
-
-We are predicting $\hat{y}_{\ell,T + h}$ using $R_{T+h}$ and
-$\Lambda_{\ell,T+h-1}$, both of which are smooth. Then we reconvolve and
+We are predicting $\hat{I}_{T + h, \ell}$ using $R_{T+h}$ and
+$\Lambda_{T+h, \ell}$, both of which are smooth. Then we reconvolve and
 iterate. It may be more productive to view this as a process with 2 modules, a
 \texttt{forecaster} and an \texttt{Rtestimator}. Then the meta procedure is
 
-\benum[nosep]
-\item Use \texttt{forecaster} to produce $\{\Lambda_{\ell, T+h}\}$ for $1\leq h
+\benum
+\item Use \texttt{forecaster} to produce $\{\Lambda_{T+h, \ell}\}$ for $2\leq h
 \leq H$. We do this conditional on all available information (incidence at the
-current location, the region, or whatever we want in between). We can even use
-auxiliary signals (wastewater or similar). Our current version is just a very
-simple \texttt{forecaster} (uses global $R_t$ and local convolved incidence).
-\item Calculate $\hat{y}$ by taking the first differences of $\{\Lambda_{\ell, T+h}\}$.
-\item Use \texttt{Rtestimator} to produce $\{R_{\ell, t}\}_{t=1}^{T+H}$
+location, the region, or some related quantity). 
+\item We can supplement these forecasts with auxiliary signals (wastewater,
+deaths etc.). Currently, we have a minimal \texttt{forecaster} (uses global $R_t$
+and local convolved incidence).
+\item Calculate $\hat{I}_{T+h, \ell}$ by taking the first (backward) differences
+of $\{\Lambda_{T+h, \ell}\}$.
+\item Use \texttt{Rtestimator} once across the pseudo time series to produce
+$\{R_{t, \ell}\}_{t=1}^{T+H}$
 \eenum
 
+\section*{Potential paper outline}\label{sec:outline}
 
+This study could combine the algorithm maybe as a small R function that users
+can apply to data, or equivalently we can setup the \texttt{forecaster} module
+such that it offers outputs that can simply be integrated within user-preferred
+\texttt{Rtestimator}modules. There are several questions to investigate that
+could complete the paper. 
+
+
+\bitem
+\item What is the value of combining local and global information relative to
+projecting forward locally? When should this work?
+\item How should we define the global scale? Perhaps pick the areas with a
+history of having similarly synched epidemics? Nearest neightbours?
+\item Given $p$ locations in a region, how many can we tolerate simulatanous
+dropout in? What about other patterns? How long (relative to the generation
+time) does dropout need to be before there is no chance of correction?
+\item Can we inform the additional parameter $\epsilon_h$ in some way to improve
+the correction? Does this require other data e.g., mobility?
+\eitem
+
+Practically, we could combine some more simulated examples using a combination
+of the \texttt{rtestim} and \texttt{EpiFilter} code that we already have
+developed that can provide insights into when and how global information can
+supplement local data scarcity as well as prvide guidelines for when this global
+information will not work. This could be about 2 figures. Then about 3 figues
+with the more impactful content that uses real examples, perhaps from the CFA
+pipeline pr the other data sources we discussed. As baselines we can always
+compare to local forecasting and hold out real data to use for validation. 
 
 \end{document}
 
