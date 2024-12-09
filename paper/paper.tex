@@ -64,8 +64,8 @@ removed.}
 \item What is the value of combining local and global information relative to
 projecting forward locally? When should this work?
 \item How should we define the global scale? Perhaps pick the areas with a
-history of having similarly synched epidemics? Nearest neightbours?
-\item Given $p$ locations in a region, how many can we tolerate simulatanous
+history of having similarly synched epidemics? Nearest neighbours?
+\item Given $p$ locations in a region, how many can we tolerate simultaneous
 dropout in? What about other patterns? How long (relative to the generation
 time) does dropout need to be before there is no chance of correction?
 \eitem
@@ -177,7 +177,7 @@ of these correlations.
 \subsection*{Using global transmission to supplement dropout}\label{sec:bayes}
 
 Our main contribution lies in developing a sensible but real-time and
-computational simple alogrithm to correct estimates in dropout locations. We
+computational simple algorithm to correct estimates in dropout locations. We
 propose to use the last local posterior in location $\ell$ as a prior and then
 draw information from the global posteriors (which exclude $\ell$) to update
 this into the posterior distribution of \eqref{eq: 2}.
